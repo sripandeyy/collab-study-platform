@@ -48,3 +48,34 @@ jobs:
         context: .
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/study-platform:latest
+
+  deploy-to-server:
+    name: Deploy to Production Server
+    runs-on: ubuntu-latest
+    needs: docker-verify
+    # Uncomment the following line when you want deployment to actually run (e.g. only on main branch)
+    # if: github.ref == 'refs/heads/main'
+    steps:
+    - name: Executing Remote SSH Commands for Deployment
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SERVER_IP }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        key: ${{ secrets.SERVER_SSH_KEY }}
+        script: |
+          # 1. Stop current containers smoothly
+          docker stop study-platform-app || true
+          docker rm study-platform-app || true
+          
+          # 2. Force pull the absolute latest architecture we just uploaded to DockerHub
+          docker pull ${{ secrets.DOCKER_USERNAME }}/study-platform:latest
+          
+          # 3. Spin up the new infrastructure mapping it to port 80 (HTTP)
+          docker run -d \
+            --name study-platform-app \
+            -p 80:8080 \
+            --env SPRING_DATASOURCE_URL=${{ secrets.PROD_DB_URL }} \
+            --env SPRING_DATASOURCE_USERNAME=${{ secrets.PROD_DB_USER }} \
+            --env SPRING_DATASOURCE_PASSWORD=${{ secrets.PROD_DB_PASS }} \
+            --restart unless-stopped \
+            ${{ secrets.DOCKER_USERNAME }}/study-platform:latest
