@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8080/api';
+const API_URL = '/api';
 let token = localStorage.getItem('jwt');
 let username = localStorage.getItem('username');
 let currentRoomId = null;
@@ -138,7 +138,7 @@ function openRoom(room) {
 
 function connectWebSocket() {
     if (stompClient) stompClient.disconnect();
-    const socket = new SockJS('http://localhost:8080/ws');
+    const socket = new SockJS('/ws');
     stompClient = Stomp.over(socket);
     stompClient.debug = null; 
     stompClient.connect({}, function (frame) {
