@@ -53,8 +53,8 @@ jobs:
     name: Deploy to Production Server
     runs-on: ubuntu-latest
     needs: docker-verify
-    # Uncomment the following line when you want deployment to actually run (e.g. only on main branch)
-    # if: github.ref == 'refs/heads/main'
+    # This prevents the workflow from crashing if you haven't bought/configured a live server yet!
+    if: ${{ secrets.SERVER_IP != '' }}
     steps:
     - name: Executing Remote SSH Commands for Deployment
       uses: appleboy/ssh-action@v1.0.3
